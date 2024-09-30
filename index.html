@@ -22,7 +22,7 @@
     </style>
 </head>
 <body>
-    <h1>پخش اذان در ساعت اذان ظهر</h1>
+    <h1>پخش اذان</h1>
 
     <!-- دکمه شروع یا توقف تایمر -->
     <button id="toggle-timer">شروع تایمر</button>
@@ -34,22 +34,16 @@
         const azanAudio = document.getElementById('azan-audio');
         const toggleButton = document.getElementById('toggle-timer');
         let intervalId = null; // برای نگهداری شناسه تایمر
-        let zuhrTime = ""; // زمان اذان ظهر
+        let zuhrTime = "21:10"; // زمان اذان ظهر به صورت دستی تنظیم شده است
+        let maghribTime = "20:55"; // زمان اذان مغرب به صورت دستی تنظیم شده است
 
-        // تابع دریافت زمان‌های اذان از API بر اساس مختصات جغرافیایی
-        async function getPrayerTimes() {
-            const latitude = 35.6892;  // عرض جغرافیایی تهران
-            const longitude = 51.3890;  // طول جغرافیایی تهران
-            const method = 8;  // روش محاسبه (شیعه جعفری)
-
-            try {
-                const response = await fetch(`https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=${method}`);
-                const data = await response.json();
-                zuhrTime = data.data.timings.Dhuhr; // زمان اذان ظهر
-                return zuhrTime;
-            } catch (error) {
-                console.error('Error fetching prayer times:', error);
-            }
+        // تابع برای اضافه کردن ۱۸ دقیقه به زمان اذان مغرب
+        function add18Minutes(time) {
+            const [hours, minutes] = time.split(':').map(Number);
+            const date = new Date();
+            date.setHours(hours);
+            date.setMinutes(minutes + 18);
+            return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
         }
 
         // تابع برای بررسی زمان فعلی و پخش اذان در زمان مشخص
@@ -57,10 +51,19 @@
             const now = new Date();
             const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
 
-            // اگر زمان فعلی با زمان اذان ظهر مطابقت داشت
+            // زمان اذان مغرب با ۱۸ دقیقه اضافه
+            const maghribWith18Minutes = add18Minutes(maghribTime);
+
+            // پخش اذان در زمان اذان ظهر
             if (currentTime === zuhrTime) {
                 azanAudio.play();
-                new Notification("اذان", { body: "زمان اذان است!" });
+                new Notification("اذان", { body: "زمان اذان ظهر است!" });
+            }
+
+            // پخش اذان در زمان اذان مغرب + ۱۸ دقیقه
+            if (currentTime === maghribWith18Minutes) {
+                azanAudio.play();
+                new Notification("اذان", { body: "زمان اذان مغرب است!" });
             }
         }
 
@@ -70,17 +73,12 @@
         }
 
         // افزودن listener به دکمه برای شروع یا توقف تایمر
-        toggleButton.addEventListener('click', async function() {
+        toggleButton.addEventListener('click', function() {
             if (intervalId === null) {
-                // دریافت زمان اذان ظهر و شروع تایمر
-                await getPrayerTimes();
-                if (zuhrTime) {
-                    intervalId = setInterval(checkAndPlayAzan, 60000); // بررسی هر دقیقه
-                    toggleButton.textContent = 'توقف اذان';
-                    alert("تایمر فعال شد. اذان در ساعت " + zuhrTime + " پخش خواهد شد.");
-                } else {
-                    alert("مشکلی در دریافت زمان اذان ظهر وجود دارد.");
-                }
+                // شروع تایمر
+                intervalId = setInterval(checkAndPlayAzan, 60000); // بررسی هر دقیقه
+                toggleButton.textContent = 'توقف اذان';
+                alert(`تایمر فعال شد. اذان ظهر در ساعت ${zuhrTime} و اذان مغرب در ساعت ${add18Minutes(maghribTime)} پخش خواهد شد.`);
             } else {
                 // توقف تایمر و قطع اذان
                 clearInterval(intervalId);
