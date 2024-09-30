@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تست پخش اذان</title>
+    <title>پخش اذان در ساعت ۲۰:۱۳</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,37 +14,35 @@
         h1 {
             color: #333;
         }
-        .prayer-times {
-            margin-top: 20px;
-        }
-        .time-box {
-            margin: 10px 0;
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <h1>تست پخش اذان</h1>
-    <p>زمان اذان به صورت دستی تنظیم شده است.</p>
+    <h1>پخش اذان در ساعت ۲۰:۱۷</h1>
 
-    <!-- نمایش زمان اذان ها -->
-    <div class="prayer-times">
-        <div class="time-box">اذان ظهر: <span id="zuhr-time">20:06</span></div>
-        <div class="time-box">اذان مغرب: <span id="maghrib-time">در حال بارگذاری...</span></div>
-    </div>
+    <!-- دکمه شروع یا توقف تایمر -->
+    <button id="toggle-timer">شروع تایمر</button>
 
     <!-- فایل صوتی اذان -->
-    <audio id="azan-audio" src="https://github.com/dabaghi/azan-test/blob/main/azan-audio.mp3"></audio>
+    <audio id="azan-audio" src="azan-audio.mp3"></audio>
 
     <script>
-        // تابع بررسی زمان اذان و پخش فایل صوتی
-        function checkAndPlayAzan() {
+        const azanAudio = document.getElementById('azan-audio');
+        const toggleButton = document.getElementById('toggle-timer');
+        const targetTime = "20:25"; // زمان هدف برای پخش اذان
+        let intervalId = null; // برای نگهداری شناسه تایمر
+
+        // تابع برای بررسی زمان فعلی و پخش اذان در ساعت ۲۰:۱۷
+        function checkAndPlayAzanAtTargetTime() {
             const now = new Date();
             const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-            const zuhrTime = "20:06";  // زمان اذان ظهر به صورت دستی تنظیم شده است
 
-            // اگر زمان فعلی با زمان اذان مطابقت داشت
-            if (currentTime === zuhrTime) {
-                document.getElementById('azan-audio').play();
+            if (currentTime === targetTime) {
+                azanAudio.play();
                 new Notification("اذان", { body: "زمان اذان است!" });
             }
         }
@@ -54,8 +52,23 @@
             Notification.requestPermission();
         }
 
-        // بررسی هر دقیقه برای پخش اذان
-        setInterval(checkAndPlayAzan, 60000);  // بررسی هر 60 ثانیه
+        // افزودن listener به دکمه برای شروع یا توقف تایمر
+        toggleButton.addEventListener('click', function() {
+            if (intervalId === null) {
+                // شروع تایمر
+                intervalId = setInterval(checkAndPlayAzanAtTargetTime, 60000);
+                toggleButton.textContent = 'توقف اذان';
+                alert("تایمر فعال شد. اذان در ساعت ۲۰:۱۳ پخش خواهد شد.");
+            } else {
+                // توقف تایمر و قطع اذان
+                clearInterval(intervalId);
+                intervalId = null; // تنظیم شناسه تایمر به null
+                azanAudio.pause();
+                azanAudio.currentTime = 0; // تنظیم فایل صوتی به ابتدا
+                toggleButton.textContent = 'شروع تایمر';
+                alert("تایمر متوقف شد و اذان قطع شد.");
+            }
+        });
     </script>
 </body>
 </html>
