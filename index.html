@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>پخش اذان در ساعت ۲۰:۱۳</title>
+    <title>پخش اذان</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,26 +22,43 @@
     </style>
 </head>
 <body>
-    <h1>پخش اذان در ساعت ۲۰:۱۷</h1>
+    <h1>پخش اذان در ساعت اذان ظهر</h1>
 
     <!-- دکمه شروع یا توقف تایمر -->
     <button id="toggle-timer">شروع تایمر</button>
 
     <!-- فایل صوتی اذان -->
-    <audio id="azan-audio" src="azan-audio.mp3"></audio>
+    <audio id="azan-audio" src="https://github.com/dabaghi/azan-test/blob/main/azan-audio.mp3"></audio>
 
     <script>
         const azanAudio = document.getElementById('azan-audio');
         const toggleButton = document.getElementById('toggle-timer');
-        const targetTime = "20:25"; // زمان هدف برای پخش اذان
         let intervalId = null; // برای نگهداری شناسه تایمر
+        let zuhrTime = ""; // زمان اذان ظهر
 
-        // تابع برای بررسی زمان فعلی و پخش اذان در ساعت ۲۰:۱۷
-        function checkAndPlayAzanAtTargetTime() {
+        // تابع دریافت زمان‌های اذان از API بر اساس مختصات جغرافیایی
+        async function getPrayerTimes() {
+            const latitude = 35.6892;  // عرض جغرافیایی تهران
+            const longitude = 51.3890;  // طول جغرافیایی تهران
+            const method = 8;  // روش محاسبه (شیعه جعفری)
+
+            try {
+                const response = await fetch(`https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=${method}`);
+                const data = await response.json();
+                zuhrTime = data.data.timings.Dhuhr; // زمان اذان ظهر
+                return zuhrTime;
+            } catch (error) {
+                console.error('Error fetching prayer times:', error);
+            }
+        }
+
+        // تابع برای بررسی زمان فعلی و پخش اذان در زمان مشخص
+        function checkAndPlayAzan() {
             const now = new Date();
             const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
 
-            if (currentTime === targetTime) {
+            // اگر زمان فعلی با زمان اذان ظهر مطابقت داشت
+            if (currentTime === zuhrTime) {
                 azanAudio.play();
                 new Notification("اذان", { body: "زمان اذان است!" });
             }
@@ -53,12 +70,17 @@
         }
 
         // افزودن listener به دکمه برای شروع یا توقف تایمر
-        toggleButton.addEventListener('click', function() {
+        toggleButton.addEventListener('click', async function() {
             if (intervalId === null) {
-                // شروع تایمر
-                intervalId = setInterval(checkAndPlayAzanAtTargetTime, 60000);
-                toggleButton.textContent = 'توقف اذان';
-                alert("تایمر فعال شد. اذان در ساعت ۲۰:۱۳ پخش خواهد شد.");
+                // دریافت زمان اذان ظهر و شروع تایمر
+                await getPrayerTimes();
+                if (zuhrTime) {
+                    intervalId = setInterval(checkAndPlayAzan, 60000); // بررسی هر دقیقه
+                    toggleButton.textContent = 'توقف اذان';
+                    alert("تایمر فعال شد. اذان در ساعت " + zuhrTime + " پخش خواهد شد.");
+                } else {
+                    alert("مشکلی در دریافت زمان اذان ظهر وجود دارد.");
+                }
             } else {
                 // توقف تایمر و قطع اذان
                 clearInterval(intervalId);
