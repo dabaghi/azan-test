@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>پخش اذان خودکار بر اساس مختصات تهران</title>
+    <title>پخش اذان خودکار - تست</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -23,68 +23,34 @@
     </style>
 </head>
 <body>
-    <h1>پخش اذان خودکار</h1>
+    <h1>پخش اذان خودکار - تست</h1>
 
-    <!-- نمایش زمان اذان ها -->
+    <!-- نمایش زمان تست -->
     <div class="prayer-times">
-        <div class="time-box">اذان ظهر: <span id="zuhr-time">در حال بارگذاری...</span></div>
-        <div class="time-box">اذان مغرب: <span id="maghrib-time">در حال بارگذاری...</span></div>
+        <div class="time-box">اذان مغرب: <span id="maghrib-time">۱۹:۲۳</span></div>
     </div>
 
     <!-- فایل صوتی اذان -->
-    <audio id="azan-audio" src="https://github.com/dabaghi/azan-test/blob/main/azan-audio.mp3"></audio>
+    <audio id="azan-audio" src="https://github.com/dabaghi/azan-test/blob/main/azan-audio.mp3?raw=true"></audio>
 
     <script>
-        // تابع دریافت زمان‌های اذان از API بر اساس مختصات جغرافیایی
-        function getPrayerTimes() {
-            const latitude = 35.6892;  // عرض جغرافیایی تهران
-            const longitude = 51.3890;  // طول جغرافیایی تهران
-            const method = 8;  // روش محاسبه (شیعه جعفری)
-
-            return fetch(`https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=${method}`)
-                .then(response => response.json())
-                .then(data => {
-                    const prayerTimes = data.data.timings;
-
-                    // افزودن 18 دقیقه به زمان اذان مغرب
-                    const maghribTime = addMinutesToTime(prayerTimes.Maghrib, 33);
-                  
-
-                    return {
-                        zuhrTime: prayerTimes.Dhuhr,
-                        maghribTime: maghribTime
-                    };
-                })
-                .catch(error => {
-                    console.error('Error fetching prayer times:', error);
-                    return null;
-                });
-        }
-
-        // تابع افزودن دقیقه به زمان
-        function addMinutesToTime(time, minutesToAdd) {
-            let [hours, minutes] = time.split(':').map(Number);
-            minutes += minutesToAdd;
-
-            // اگر دقیقه‌ها بیشتر از 60 شد، ساعت‌ها را افزایش دهید
-            if (minutes >= 60) {
-                hours += Math.floor(minutes / 60);
-                minutes = minutes % 60;
-            }
-
-            // تبدیل ساعت و دقیقه به رشته و تنظیم فرمت دو رقمی
-            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        // تابع تبدیل رشته زمان به شیء Date
+        function convertToTimeObject(timeString) {
+            const now = new Date();
+            const [hours, minutes] = timeString.split(':').map(Number);
+            const time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+            return time;
         }
 
         // تابع بررسی زمان اذان و پخش فایل صوتی
-        function checkAndPlayAzan(prayerTimes) {
+        function checkAndPlayAzan() {
             const now = new Date();
-            const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            const maghribTime = convertToTimeObject("19:25");  // تنظیم دستی زمان اذان مغرب
 
-            // اگر زمان فعلی با زمان اذان ظهر یا مغرب مطابقت داشت
-            if (currentTime === prayerTimes.zuhrTime || currentTime === prayerTimes.maghribTime) {
+            // بررسی اگر زمان فعلی برابر با زمان اذان باشد
+            if (Math.abs(now - maghribTime) < 60000) {  // کمتر از 60 ثانیه تفاوت
                 document.getElementById('azan-audio').play();
-                new Notification("اذان", { body: "زمان اذان است!" });
+                new Notification("اذان", { body: "زمان اذان مغرب است!" });
             }
         }
 
@@ -93,23 +59,10 @@
             Notification.requestPermission();
         }
 
-        // بارگذاری زمان‌های اذان و نمایش آنها روی صفحه
-        async function loadPrayerTimes() {
-            const prayerTimes = await getPrayerTimes();
-            if (prayerTimes) {
-                // نمایش زمان‌های اذان در HTML
-                document.getElementById('zuhr-time').textContent = prayerTimes.zuhrTime;
-                document.getElementById('maghrib-time').textContent = prayerTimes.maghribTime;
-
-                // بررسی هر دقیقه برای پخش اذان
-                setInterval(() => {
-                    checkAndPlayAzan(prayerTimes);
-                }, 60000);  // بررسی هر 60 ثانیه
-            }
-        }
-
-        // بارگذاری زمان‌های اذان در بدو شروع صفحه
-        loadPrayerTimes();
+        // بررسی هر دقیقه برای پخش اذان
+        setInterval(() => {
+            checkAndPlayAzan();
+        }, 60000);  // بررسی هر 60 ثانیه
     </script>
 </body>
 </html>
