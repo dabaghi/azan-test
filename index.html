@@ -28,7 +28,7 @@
 
     <!-- نمایش زمان اذان ها -->
     <div class="prayer-times">
-        <div class="time-box">اذان ظهر: <span id="zuhr-time">19:52</span></div>
+        <div class="time-box">اذان ظهر: <span id="zuhr-time">19:55</span></div>
         <div class="time-box">اذان مغرب: <span id="maghrib-time">در حال بارگذاری...</span></div>
     </div>
 
@@ -40,7 +40,7 @@
         function checkAndPlayAzan() {
             const now = new Date();
             const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-            const zuhrTime = "19:52";  // زمان اذان ظهر به صورت دستی تنظیم شده است
+            const zuhrTime = "19:55";  // زمان اذان ظهر به صورت دستی تنظیم شده است
 
             // اگر زمان فعلی با زمان اذان مطابقت داشت
             if (currentTime === zuhrTime) {
