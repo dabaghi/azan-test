@@ -32,7 +32,7 @@
     </div>
 
     <!-- فایل صوتی اذان -->
-    <audio id="azan-audio" src="https://github.com/dabaghi/azan-test/blob/main/azan-audio.mp3?raw=true"></audio>
+    <audio id="azan-audio" src="https://github.com/dabaghi/azan-test/blob/main/azan-audio.mp3"></audio>
 
     <script>
         // تابع دریافت زمان‌های اذان از API بر اساس مختصات جغرافیایی
@@ -47,7 +47,7 @@
                     const prayerTimes = data.data.timings;
 
                     // افزودن 18 دقیقه به زمان اذان مغرب
-                    const maghribTime = addMinutesToTime(prayerTimes.Maghrib, 18);
+                    const maghribTime = addMinutesToTime(prayerTimes.Maghrib, 33);
                   
 
                     return {
