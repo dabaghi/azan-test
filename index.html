@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>پخش اذان خودکار - تست</title>
+    <title>تست پخش اذان</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -23,34 +23,29 @@
     </style>
 </head>
 <body>
-    <h1>پخش اذان خودکار - تست</h1>
+    <h1>تست پخش اذان</h1>
+    <p>زمان اذان به صورت دستی تنظیم شده است.</p>
 
-    <!-- نمایش زمان تست -->
+    <!-- نمایش زمان اذان ها -->
     <div class="prayer-times">
-        <div class="time-box">اذان مغرب: <span id="maghrib-time">۱۹:۲۳</span></div>
+        <div class="time-box">اذان ظهر: <span id="zuhr-time">19:52</span></div>
+        <div class="time-box">اذان مغرب: <span id="maghrib-time">در حال بارگذاری...</span></div>
     </div>
 
     <!-- فایل صوتی اذان -->
-    <audio id="azan-audio" src="https://github.com/dabaghi/azan-test/blob/main/azan-audio.mp3?raw=true"></audio>
+    <audio id="azan-audio" src="https://github.com/dabaghi/azan-test/blob/main/azan-audio.mp3"></audio>
 
     <script>
-        // تابع تبدیل رشته زمان به شیء Date
-        function convertToTimeObject(timeString) {
-            const now = new Date();
-            const [hours, minutes] = timeString.split(':').map(Number);
-            const time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
-            return time;
-        }
-
         // تابع بررسی زمان اذان و پخش فایل صوتی
         function checkAndPlayAzan() {
             const now = new Date();
-            const maghribTime = convertToTimeObject("19:25");  // تنظیم دستی زمان اذان مغرب
+            const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            const zuhrTime = "19:52";  // زمان اذان ظهر به صورت دستی تنظیم شده است
 
-            // بررسی اگر زمان فعلی برابر با زمان اذان باشد
-            if (Math.abs(now - maghribTime) < 60000) {  // کمتر از 60 ثانیه تفاوت
+            // اگر زمان فعلی با زمان اذان مطابقت داشت
+            if (currentTime === zuhrTime) {
                 document.getElementById('azan-audio').play();
-                new Notification("اذان", { body: "زمان اذان مغرب است!" });
+                new Notification("اذان", { body: "زمان اذان است!" });
             }
         }
 
@@ -60,9 +55,7 @@
         }
 
         // بررسی هر دقیقه برای پخش اذان
-        setInterval(() => {
-            checkAndPlayAzan();
-        }, 60000);  // بررسی هر 60 ثانیه
+        setInterval(checkAndPlayAzan, 60000);  // بررسی هر 60 ثانیه
     </script>
 </body>
 </html>
