@@ -25,7 +25,7 @@
     <h1>پخش اذان</h1>
 
     <!-- دکمه شروع یا توقف تایمر -->
-    <button id="toggle-timer">شروع تایمر</button>
+    <button id="toggle-timer">فعال کردن</button>
 
     <!-- فایل صوتی اذان -->
     <audio id="azan-audio" src="https://github.com/dabaghi/azan-test/blob/main/azan-audio.mp3"></audio>
@@ -34,8 +34,24 @@
         const azanAudio = document.getElementById('azan-audio');
         const toggleButton = document.getElementById('toggle-timer');
         let intervalId = null; // برای نگهداری شناسه تایمر
-        let zuhrTime = "21:55"; // زمان اذان ظهر به صورت دستی تنظیم شده است
-        let maghribTime = "21:42"; // زمان اذان مغرب به صورت دستی تنظیم شده است
+        let zuhrTime = ""; // زمان اذان ظهر
+        let maghribTime = ""; // زمان اذان مغرب
+
+        // تابع دریافت زمان‌های اذان از API بر اساس مختصات جغرافیایی
+        async function getPrayerTimes() {
+            const latitude = 35.6892;  // عرض جغرافیایی تهران
+            const longitude = 51.3890;  // طول جغرافیایی تهران
+            const method = 8;  // روش محاسبه (شیعه جعفری)
+
+            try {
+                const response = await fetch(`https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=${method}`);
+                const data = await response.json();
+                zuhrTime = data.data.timings.Dhuhr; // زمان اذان ظهر
+                maghribTime = data.data.timings.Maghrib; // زمان اذان مغرب
+            } catch (error) {
+                console.error('Error fetching prayer times:', error);
+            }
+        }
 
         // تابع برای اضافه کردن ۱۸ دقیقه به زمان اذان مغرب
         function add18Minutes(time) {
@@ -73,20 +89,25 @@
         }
 
         // افزودن listener به دکمه برای شروع یا توقف تایمر
-        toggleButton.addEventListener('click', function() {
+        toggleButton.addEventListener('click', async function() {
             if (intervalId === null) {
-                // شروع تایمر
-                intervalId = setInterval(checkAndPlayAzan, 60000); // بررسی هر دقیقه
-                toggleButton.textContent = 'توقف اذان';
-                alert(`تایمر فعال شد. اذان ظهر در ساعت ${zuhrTime} و اذان مغرب در ساعت ${add18Minutes(maghribTime)} پخش خواهد شد.`);
+                // دریافت زمان اذان و شروع تایمر
+                await getPrayerTimes();
+                if (zuhrTime && maghribTime) {
+                    intervalId = setInterval(checkAndPlayAzan, 60000); // بررسی هر دقیقه
+                    toggleButton.textContent = 'توقف اذان';
+                    alert(`تایمر فعال شد. اذان ظهر در ساعت ${zuhrTime} و اذان مغرب در ساعت ${add18Minutes(maghribTime)} پخش خواهد شد.`);
+                } else {
+                    alert("مشکلی در دریافت زمان اذان وجود دارد.");
+                }
             } else {
                 // توقف تایمر و قطع اذان
                 clearInterval(intervalId);
                 intervalId = null; // تنظیم شناسه تایمر به null
                 azanAudio.pause();
                 azanAudio.currentTime = 0; // تنظیم فایل صوتی به ابتدا
-                toggleButton.textContent = 'شروع تایمر';
-                alert("تایمر متوقف شد و اذان قطع شد.");
+                toggleButton.textContent = 'فعال کردن';
+                alert(" اذان قطع شد و اذان گوی خودکار غیر فعال گردید.");
             }
         });
     </script>
